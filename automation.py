@@ -14,7 +14,7 @@ class SearchAutomation:
 
     async def perform_search(self, query: str):
         """
-        Performs the search using DuckDuckGo HTML, clicks the first result, and returns the HTML content.
+        Performs the search using DuckDuckGo Lite, clicks the first result, and returns the HTML content.
         """
         context = await self.browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -22,22 +22,22 @@ class SearchAutomation:
         page = await context.new_page()
         
         try:
-            print(f"Searching DuckDuckGo for: {query}")
-            # Navigate to DuckDuckGo HTML (lite version, easier for automation)
-            # Increased timeout for slower environments
-            await page.goto("https://html.duckduckgo.com/html/", timeout=60000)
+            print(f"Searching DuckDuckGo Lite for: {query}")
+            # Navigate to DuckDuckGo Lite
+            await page.goto("https://lite.duckduckgo.com/lite/", timeout=60000)
             
             # Type query and search
+            # Lite version uses input[name="q"]
             await page.fill('input[name="q"]', query, timeout=10000) 
             await page.press('input[name="q"]', 'Enter')
             
             # Wait for results
-            # The result link class in HTML version is usually 'result__a'
-            result_selector = '.result__a'
+            # In Lite version, results are table rows. The link is usually in a class 'result-link' or just the first anchor in the table
+            # Let's inspect typical structure: .result-link
+            result_selector = '.result-link'
             await page.wait_for_selector(result_selector, timeout=20000)
             
             # Click the first result
-            # We take the first one
             await page.click(f'{result_selector} >> nth=0')
             
             # Wait for page to load
@@ -52,8 +52,6 @@ class SearchAutomation:
                 try:
                     title = await page.title()
                     error_msg += f" | Page Title: {title}"
-                    content = await page.content()
-                    # We can't save to file on read-only system easily, but we can log
                     print(f"Debug Info: Title={title}")
                 except:
                     pass
