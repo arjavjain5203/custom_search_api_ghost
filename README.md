@@ -1,63 +1,62 @@
-# Playwright Search API
+# Custom Search API (Ghost)
 
-A minimal Python-based automation service that uses Playwright to perform web searches and return raw HTML content via a FastAPI endpoint.
+A minimal, Playwright-based Search API that automates DuckDuckGo searches and returns raw HTML content.
 
 ## Features
 
-- **Automated Search**: Uses Playwright (Headless Chromium) to search on Google/DuckDuckGo.
-- **Raw Content Extraction**: Returns the full HTML of the first organic search result.
-- **API Endpoint**: Simple `POST /search` interface.
-- **Container Ready**: Designed with headless mode in mind.
-
-## Requirements
-
-- Python 3.8+
-- Playwright
-- FastAPI
-- Uvicorn
+- **FastAPI Backend**: Simple `POST /search` endpoint.
+- **Playwright Automation**: Uses a real browser instance (Chromium) to bypass basic bot detection.
+- **DuckDuckGo Only**: Configured to search DuckDuckGo (HTML Lite version) for reliability and speed.
+- **Bot Mitigation**: Includes User-Agent spoofing and realistic interaction delays.
+- **Headful Mode**: Browser window is visible for debugging purposes (can be disabled in code).
 
 ## Installation
 
-1.  **Clone the repository** (or navigate to the project directory).
-2.  **Create a virtual environment**:
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/arjavjain5203/custom_search_api_ghost.git
+    cd custom_search_api_ghost
+    ```
+
+2.  **Create a Virtual Environment**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
-3.  **Install dependencies**:
+
+3.  **Install Dependencies**
     ```bash
     pip install -r requirements.txt
-    ```
-4.  **Install Playwright browsers**:
-    ```bash
     playwright install chromium
     ```
 
 ## Usage
 
-1.  **Start the API server**:
+1.  **Start the Server**
     ```bash
-    uvicorn main:app --reload
+    uvicorn main:app --port 8000
     ```
-    The server will start at `http://127.0.0.1:8000`.
 
-2.  **Make a Search Request**:
+2.  **Make a Search Request**
     ```bash
     curl -X POST "http://127.0.0.1:8000/search" \
          -H "Content-Type: application/json" \
-         -d '{"query": "What is FastAPI?"}'
+         -d '{"query": "Who is the PM of India?"}'
     ```
 
-3.  **Response**:
+## API Endpoint
+
+### `POST /search`
+
+-   **Request Body**:
     ```json
     {
-      "html_content": "<!DOCTYPE html><html>...</html>"
+      "query": "string"
     }
     ```
-
-## Project Structure
-
-- `main.py`: FastAPI application and endpoint definition.
-- `automation.py`: Core Playwright automation logic.
-- `requirements.txt`: Python dependencies.
-# custom_search_api_ghost
+-   **Response**: Returns the raw HTML content of the first search result page.
+    ```json
+    {
+      "html_content": "<!DOCTYPE html>..."
+    }
+    ```
