@@ -34,36 +34,36 @@ class SearchAutomation:
             print(f"Searching Google for: {query}")
             
             # Navigate to Google
-            await page.goto("https://www.google.com", timeout=60000)
+            await page.goto("https://www.google.com", timeout=120000)
             
             # Handle consent if present (simple attempt)
             try:
                 # Accept all button - varies by region, but often 'Accept all' or 'I agree'
                 # We try a few common selectors
-                await page.click('button:has-text("Accept all")', timeout=2000)
+                await page.click('button:has-text("Accept all")', timeout=5000)
             except:
                 pass
 
             # Type query and search
             # Google uses textarea[name="q"] or input[name="q"]
-            await page.fill('[name="q"]', query, timeout=10000)
+            await page.fill('[name="q"]', query, timeout=20000)
             await page.press('[name="q"]', 'Enter')
             
             # Wait for results
             # #search is the main container
-            await page.wait_for_selector('#search', timeout=20000)
+            await page.wait_for_selector('#search', timeout=40000)
             
             # Click the first organic result
             # div.g represents a result container
             # h3 is the title
             result_selector = 'div.g h3'
-            await page.wait_for_selector(result_selector, timeout=20000)
+            await page.wait_for_selector(result_selector, timeout=40000)
             
             # Click the h3, Playwright will click the center which usually triggers the link
             await page.click(f'{result_selector} >> nth=0')
             
             # Wait for page to load
-            await page.wait_for_load_state("domcontentloaded", timeout=60000)
+            await page.wait_for_load_state("domcontentloaded", timeout=120000)
             
             # Extract HTML
             return await page.content()
