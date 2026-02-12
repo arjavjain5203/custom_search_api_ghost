@@ -24,38 +24,41 @@ class SearchAutomation:
         try:
             print(f"Searching DuckDuckGo for: {query}")
             # Navigate to DuckDuckGo HTML (lite version, easier for automation)
-            await page.goto("https://html.duckduckgo.com/html/", timeout=30000)
+            # Increased timeout for slower environments
+            await page.goto("https://html.duckduckgo.com/html/", timeout=60000)
             
             # Type query and search
-            await page.fill('input[name="q"]', query)
+            await page.fill('input[name="q"]', query, timeout=10000) 
             await page.press('input[name="q"]', 'Enter')
             
             # Wait for results
             # The result link class in HTML version is usually 'result__a'
             result_selector = '.result__a'
-            await page.wait_for_selector(result_selector, timeout=15000)
+            await page.wait_for_selector(result_selector, timeout=20000)
             
             # Click the first result
             # We take the first one
             await page.click(f'{result_selector} >> nth=0')
             
             # Wait for page to load
-            await page.wait_for_load_state("domcontentloaded", timeout=30000)
+            await page.wait_for_load_state("domcontentloaded", timeout=60000)
             
             # Extract HTML
             return await page.content()
             
         except Exception as e:
-            print(f"Error during automation: {e}")
+            error_msg = f"Error during automation: {e}"
             if page:
                 try:
+                    title = await page.title()
+                    error_msg += f" | Page Title: {title}"
                     content = await page.content()
-                    with open("debug.html", "w", encoding="utf-8") as f:
-                        f.write(content)
-                    print("Saved debug.html")
+                    # We can't save to file on read-only system easily, but we can log
+                    print(f"Debug Info: Title={title}")
                 except:
                     pass
-            raise e
+            print(error_msg)
+            raise Exception(error_msg) from e
         finally:
             await context.close()
 
