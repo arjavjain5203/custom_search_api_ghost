@@ -23,6 +23,18 @@ async def search(request: SearchRequest):
     finally:
         await automation.close()
 
+@app.get("/health")
+async def health_check():
+    automation = SearchAutomation()
+    try:
+        await automation.launch_browser()
+        title = await automation.check_health()
+        return {"status": "ok", "browser_connectivity": title}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+    finally:
+        await automation.close()
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

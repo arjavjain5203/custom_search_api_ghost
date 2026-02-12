@@ -62,6 +62,18 @@ class SearchAutomation:
         finally:
             await context.close()
 
+    async def check_health(self):
+        """Simple health check to verify browser connectivity."""
+        try:
+            context = await self.browser.new_context()
+            page = await context.new_page()
+            await page.goto("https://example.com", timeout=10000)
+            title = await page.title()
+            await context.close()
+            return title
+        except Exception as e:
+            return f"Health Check Failed: {e}"
+
     async def close(self):
         """Closes the browser and playwright instance."""
         if self.browser:
