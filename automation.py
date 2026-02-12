@@ -10,34 +10,56 @@ class SearchAutomation:
     async def launch_browser(self):
         """Launches the browser instance."""
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=self.headless)
+        # Add stealth args
+        self.browser = await self.playwright.chromium.launch(
+            headless=self.headless,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
 
     async def perform_search(self, query: str):
         """
-        Performs the search using DuckDuckGo Lite, clicks the first result, and returns the HTML content.
+        Performs the search using Google with stealth settings.
         """
+        # Stealth context
         context = await self.browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            locale="en-US",
+            timezone_id="America/New_York",
+            viewport={"width": 1280, "height": 720},
+            device_scale_factor=1,
         )
         page = await context.new_page()
         
         try:
-            print(f"Searching DuckDuckGo Lite for: {query}")
-            # Navigate to DuckDuckGo Lite
-            await page.goto("https://lite.duckduckgo.com/lite/", timeout=60000)
+            print(f"Searching Google for: {query}")
             
+            # Navigate to Google
+            await page.goto("https://www.google.com", timeout=60000)
+            
+            # Handle consent if present (simple attempt)
+            try:
+                # Accept all button - varies by region, but often 'Accept all' or 'I agree'
+                # We try a few common selectors
+                await page.click('button:has-text("Accept all")', timeout=2000)
+            except:
+                pass
+
             # Type query and search
-            # Lite version uses input[name="q"]
-            await page.fill('input[name="q"]', query, timeout=10000) 
-            await page.press('input[name="q"]', 'Enter')
+            # Google uses textarea[name="q"] or input[name="q"]
+            await page.fill('[name="q"]', query, timeout=10000)
+            await page.press('[name="q"]', 'Enter')
             
             # Wait for results
-            # In Lite version, results are table rows. The link is usually in a class 'result-link' or just the first anchor in the table
-            # Let's inspect typical structure: .result-link
-            result_selector = '.result-link'
+            # #search is the main container
+            await page.wait_for_selector('#search', timeout=20000)
+            
+            # Click the first organic result
+            # div.g represents a result container
+            # h3 is the title
+            result_selector = 'div.g h3'
             await page.wait_for_selector(result_selector, timeout=20000)
             
-            # Click the first result
+            # Click the h3, Playwright will click the center which usually triggers the link
             await page.click(f'{result_selector} >> nth=0')
             
             # Wait for page to load
@@ -59,7 +81,7 @@ class SearchAutomation:
             raise Exception(error_msg) from e
         finally:
             await context.close()
-
+            
     async def check_health(self):
         """Simple health check to verify browser connectivity."""
         try:
