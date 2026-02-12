@@ -2,7 +2,7 @@ import asyncio
 from playwright.async_api import async_playwright, Browser, Page
 
 class SearchAutomation:
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = True):
         self.headless = headless
         self.browser: Browser = None
         self.playwright = None
